@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+
+    <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <!--最大连接数-->
+        <property name="maxTotal" value="1000"/>
+        <!-- 最大空闲连接数 -->
+        <property name="maxIdle" value="50"/>
+        <!-- 最大等待毫秒数-->
+        <property name="maxWaitMillis" value="1000"/>
+        <!-- 连接有效性验证 -->
+        <property name="testOnBorrow" value="true"/>
+    </bean>
+
+    <bean id="connectionFactory"
+          class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <property name="poolConfig" ref="poolConfig"/>
+        <property name="port" value="6379"/>
+        <property name="hostName" value="127.0.0.1"/>
+        <property name="timeout" value="100000"/>
+    </bean>
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+        <!-- 注入连接工厂 -->
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <!-- 配置key序列化类 -->
+        <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+        <!-- 配置value序列化类 -->
+        <property name="valueSerializer">
+            <bean class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+        </property>
+    </bean>
+
+    <bean id="jedisClient" class="cache.JedisSingleClient"/>
+    <context:component-scan base-package="dao,aop"/>
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+</beans>
